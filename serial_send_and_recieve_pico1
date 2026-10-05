@@ -1,0 +1,45 @@
+
+# sender.py
+import time
+from machine import Pin, UART, PWM
+
+# 1. Dynamically import and run x.py to initialize the pwm object
+import pwm_out as x  
+
+# 2. Extract the duty cycle value that x.py set
+# x.pwm.duty_u16() reads the current hardware register value
+current_u16 = x.pwm.duty_u16()
+calculated_percent = (current_u16 / 65535) * 100
+
+# 3. Setup UART Serial for the cable (TX=GPIO4, RX=GPIO5)
+uart = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1))
+
+print(f"Duty cycle: {calculated_percent:.1f}% ({current_u16})")
+
+# 4. Transmit the data across the cable
+# Send 3 times with a small delay to guarantee arrival on boot
+for _ in range(3):
+    uart.write(f"{calculated_percent}\n")
+    time.sleep(0.2)
+
+print("Packet sent successfully.")
+
+
+
+while True:
+    if uart.any():
+        # Read the incoming line of data and clean it up
+        raw_data = uart.readline()
+        try:
+            # Decode bytes to string and remove newline characters
+            decoded_str = raw_data.decode('utf-8').strip()
+            print(f"Received confirmation: {decoded_str}")
+    
+
+        except Exception as e:
+            print(f"Error processing received data: {e}")
+
+
+
+
+
