@@ -1,0 +1,40 @@
+import time
+from machine import Pin, UART, PWM
+
+# 1. Setup UART Serial to match the sender (TX=Pin 0, RX=Pin 1)
+uart = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1))
+
+# 2. Setup local PWM output on Pin 15 at 1kHz to replicate the signal
+pwm = PWM(Pin(15))
+pwm.freq(1000)
+
+print("Receiver is online, waiting for data...")
+
+while True:
+    if uart.any():
+        # Read the incoming line of data and clean it up
+        raw_data = uart.readline()
+        try:
+            # Decode bytes to string and remove newline characters
+            decoded_str = raw_data.decode('utf-8').strip()
+            
+            # Convert the percentage string back to a float
+            received_percent = float(decoded_str)
+            print(f"Received target duty cycle: {received_percent:.1f}%")
+            
+            # 3. Calculate and apply the corresponding 16-bit register value
+            u16_val = int((received_percent / 100) * 65535) #back to percent 
+            pwm.duty_u16(u16_val) #running the pwm with the new value
+            new_duty = (pwm.duty_u16() / 65535) * 100  # Read back the applied value for confirmation
+            print(f"Applied hardware register value: {u16_val}")
+            print(f"Actual duty cycle: {new_duty:.1f}%")
+
+            # 4. Send back a confirmation result to the sender
+            time.sleep(0.1) # Small pause to let UART clear
+            confirmation_msg = f"SUCCESS: Applied {received_percent:.1f}%\nRegister Value: {u16_val}\nActual Duty Cycle: {new_duty:.1f}%\n"
+            uart.write(confirmation_msg)
+            print("Sent confirmation back to sender.")
+        except Exception as e:
+            print(f"Error processing received data: {e}")
+            uart.write(f"ERROR: Invalid data received\n")                
+    time.sleep(0.1)
