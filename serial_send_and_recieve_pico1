@@ -18,7 +18,7 @@ print(f"Duty cycle: {calculated_percent:.1f}% ({current_u16})")
 
 # 4. Transmit the data across the cable
 # Send 3 times with a small delay to guarantee arrival on boot
-for _ in range(3):
+for _ in range(12):
     uart.write(f"{calculated_percent}\n")
     time.sleep(0.2)
 
