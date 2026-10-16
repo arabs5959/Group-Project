@@ -8,7 +8,7 @@ def get_reading():
     raw_value = 0  # Initialize the variable to 0 first!
     
     for _ in range(12):
-        raw_value = adc.read_u16()  # Accumulate the raw 16-bit values (0-65535)
+        raw_value += adc.read_u16()  # Accumulate the raw 16-bit values (0-65535)
         time.sleep(0.05)             # Shorter sleep so taking an average doesn't take 6 full seconds
         
     average = int(raw_value / 12)    # Calculate the average and convert to a whole integer
