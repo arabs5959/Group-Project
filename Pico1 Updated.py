@@ -2,7 +2,7 @@ import time
 from machine import Pin, UART, PWM
 # import and run pwm_out.py to initialize the pwm object
 import pwm_out as x 
-# import adc reader (removed the .py from the import statement)
+# import adc reader
 import ADC_readings as adc_reader 
 
 # Extract the duty cycle value that x.py set
